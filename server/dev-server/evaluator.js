@@ -83,7 +83,7 @@ const getCapability = (language) => {
     return capabilities[indexCapability]
 }
 
-const getOutputFromAnswer(program, input, capability) => {
+const getOutputFromAnswer = (program, input, capability) => {
     return new Promise((resolve, reject) => {
         var output = ''
 
