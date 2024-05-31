@@ -40,6 +40,9 @@ async function evalProgramming(programmingExercise, evalReq) {
             response.report.exercise = programmingExercise.id
             let tests = []
             try {
+                if(!fulfilPreConditions(program, programmingExercise.keywords)) throw (
+                    new Error("Your solution doesn't meet the requirements.")
+                )
                 // place here the code your evaluator needs to get resultStudent
                 for (let metadata of programmingExercise.tests) {
                     let lastTestError = {}
@@ -81,6 +84,45 @@ const getCapability = (language) => {
 
     let indexCapability = languagesArray.findIndex(languageElement => languageElement.toLowerCase() == language.toLowerCase())
     return capabilities[indexCapability]
+}
+
+const sanitizeKeywords = (keywords) => {
+    let sanitizedKeywords = [];
+    keywords.forEach(keyword => {
+        if (keyword.includes(',')) {
+            keyword.split(',').map(k => k.trim()).forEach(k => sanitizedKeywords.push(k));
+        } else {
+            sanitizedKeywords.push(keyword.trim());
+        }
+    });
+    return sanitizedKeywords;
+}
+
+const fulfilPreConditions = (program, keywords) => {
+    let fulfilled = true
+    keywords = sanitizeKeywords(keywords)
+
+    let compulsoryKeyword = keywords.find(keyword => keyword.startsWith('compulsory'));
+    if (compulsoryKeyword) {
+        let compulsoryKeywords = compulsoryKeyword.match(/\[(.*?)\]/)[1].split(';');
+        compulsoryKeywords = compulsoryKeywords.map(keyword => keyword.match(/"(.*?)"/)[1]);
+        compulsoryKeywords.forEach(keyword => {
+            if(!program.includes(keyword)) {
+                fulfilled = false
+            }
+        })
+    }
+    let forbiddenKeyword = keywords.find(keyword => keyword.startsWith('forbidden'));
+    if (forbiddenKeyword) {
+        let forbiddenKeywords = forbiddenKeyword.match(/\[(.*?)\]/)[1].split(';');
+        forbiddenKeywords = forbiddenKeywords.map(keyword => keyword.match(/"(.*?)"/)[1]);
+        forbiddenKeywords.forEach(keyword => {
+            if(program.includes(keyword)) {
+                fulfilled = false
+            }
+        })
+    }
+    return fulfilled
 }
 
 const getOutputFromAnswer = (program, input, capability) => {
